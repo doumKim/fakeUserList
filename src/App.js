@@ -1,39 +1,48 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import UserList from './UserList';
 import CreateUser from './CreateUser';
-
-const users = [
-  {
-    id: 1,
-    username: 'velopert',
-    email: 'public.velopert@gmail.com',
-    done: false,
-  },
-  {
-    id: 2,
-    username: 'tester',
-    email: 'tester@example.com',
-    done: false,
-  },
-  {
-    id: 3,
-    username: 'liz',
-    email: 'liz@example.com',
-    done: false,
-  },
-];
 
 class App extends Component {
   constructor(props) {
     super(props);
-    this.nextId = 4;
+    this.nextId = 0;
     this.state = {
-      users,
+      users: [],
       inputs: {
         username: '',
         email: '',
       },
     };
+  }
+
+  fetchUsers = async () => {
+    try {
+      const datas = await axios.get(
+        'https://jsonplaceholder.typicode.com/users',
+      );
+      const users = datas.data.map((user) => {
+        return {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          done: false,
+        };
+      });
+      this.setState({
+        users,
+        inputs: {
+          username: '',
+          email: '',
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  componentDidMount() {
+    this.fetchUsers();
   }
 
   onChange = (e) => {
@@ -47,14 +56,14 @@ class App extends Component {
   };
 
   onCreate = () => {
+    const { users } = this.state;
     const { username, email } = this.state.inputs;
     const user = {
-      id: this.nextId,
+      id: users[users.length - 1].id + 1,
       username,
       email,
       done: false,
     };
-    this.nextId += 1;
     this.setState((prevState) => {
       return {
         users: [...prevState.users, user],
@@ -74,7 +83,6 @@ class App extends Component {
         ...prevState.inputs,
       };
     });
-    console.log('remove');
   };
 
   onToggle = (id) => {
@@ -92,7 +100,6 @@ class App extends Component {
         ...prevState.inputs,
       };
     });
-    console.log('TOGGLE');
   };
 
   render() {
